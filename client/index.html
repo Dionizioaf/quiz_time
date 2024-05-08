@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/siimple/siimple.css"
+    />
+    <title>Quiz Client</title>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const socket = new WebSocket("ws://localhost:12345");
+        const quizDiv = document.getElementById("quizContainer"); // Get the quiz container div
+        const nameDiv = document.getElementById("nameContainer"); // Get the name container div
+        const nicknameDisplay = document.getElementById("nicknameDisplay"); // Element to display the nickname
+        const questionID = document.getElementById("questionId"); // Element to display the nickname
+        var qid = 0;
+
+        quizDiv.style.display = "none"; // Initially hide the quiz div
+
+        socket.onopen = function () {
+          console.log("Connection established");
+        };
+
+        document.getElementById("submitName").onclick = function () {
+          const name = document.getElementById("seunome").value.trim();
+          if (name) {
+            const nameData = { name: name };
+            socket.send(JSON.stringify(nameData));
+            quizDiv.style.display = ""; // Show the quiz div when name is submitted
+            nameDiv.style.display = "none"; // Hide the name div after the name is submitted
+            nicknameDisplay.textContent = "Apelido: " + name; // Display the nickname
+          }
+        };
+
+        socket.onmessage = function (event) {
+          const data = JSON.parse(event.data);
+
+          if (data.question === undefined) {
+            return;
+          }
+          resetUI(); // Reset UI for new question
+          document.getElementById("question").textContent = data.question;
+          questionID.textContent = "Question ID: " + data.id;
+          qid = data.id;
+
+          const optionsDiv = document.getElementById("options");
+          // Create and append buttons for each option
+          data.options.forEach((option) => {
+            const optionButton = createOptionButton(option);
+            optionsDiv.appendChild(optionButton);
+          });
+        };
+
+        socket.onclose = function () {
+          console.log("Connection closed by the server");
+          alert("Connection closed");
+        };
+
+        function resetUI() {
+          document.getElementById("options").innerHTML = ""; // Clear previous options
+          document.getElementById("question").textContent =
+            "Waiting for question...";
+        }
+
+        function createOptionButton(option) {
+          const optionButton = document.createElement("button");
+          optionButton.className = "button is-full";
+          optionButton.innerHTML = `<i class="si-lock has-pr-1"></i><span>${option}</span>`;
+          optionButton.onclick = function () {
+            if (socket.readyState === WebSocket.OPEN) {
+              const content = { id: qid.toString(), answer: option.toString() };
+              socket.send(JSON.stringify(content));
+              optionButton.disabled = true;
+              optionButton.style.backgroundColor = "#ccc";
+            } else {
+              console.log("Cannot send message. The socket is not open.");
+            }
+          };
+          return optionButton;
+        }
+      });
+    </script>
+  </head>
+  <body class="has-bg-light">
+    <div class="container has-pt-16 has-pb-16">
+      <div class="has-w-96 has-pl-4 has-pr-4 has-ml-auto has-mr-auto">
+        <div id="nameContainer" class="card is-shadowed">
+          <h3>What's your nickname?</h3>
+          <div class="has-mb-4">
+            <input
+              type="text"
+              class="input"
+              placeholder="Pedrinho or Mariazinha"
+              id="seunome"
+              name="seunome"
+            />
+            <button id="submitName" class="button is-full">Submit</button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="has-w-96 has-pl-4 has-pr-4 has-ml-auto has-mr-auto"
+        id="quizContainer"
+      >
+        <div class="card is-shadowed">
+          <h3 id="nicknameDisplay">_</h3>
+          <!-- Display nickname here -->
+          <h5 id="questionId">_</h5>
+          <!-- Display nickname here -->
+          <h3 id="question">Waiting for question...</h3>
+          <div id="options"></div>
+          <!-- Options container -->
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

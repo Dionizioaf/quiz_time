@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/siimple/siimple.css"
+    />
+    <title>Quiz Host</title>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const socket = new WebSocket("ws://localhost:12345");
+
+        socket.onopen = function () {
+          console.log("Connection established");
+          var n = {
+            name: "host",
+          };
+          socket.send(JSON.stringify(n)); // Send unique identifier for the host
+        };
+
+        document
+          .getElementById("sendJSON")
+          .addEventListener("click", function () {
+            const jsonInput = document.getElementById("jsonInput").value;
+            try {
+              JSON.parse(jsonInput); // Validate JSON format
+              socket.send(jsonInput); // Send JSON content to the server
+            } catch (e) {
+              console.error("Invalid JSON: ", e);
+              alert("Invalid JSON format"); // Alert the user if JSON is invalid
+            }
+          });
+
+        socket.onmessage = function (event) {
+          const data = JSON.parse(event.data);
+          if (data.type === "clients_list") {
+            const clientsContainer = document.getElementById("client_list");
+            clientsContainer.innerHTML = ""; // Clear previous list
+            data.data.forEach((client) => {
+              const clientDiv = document.createElement("div");
+              clientDiv.textContent = client;
+              clientsContainer.appendChild(clientDiv);
+            });
+          }
+        };
+
+        socket.onclose = function () {
+          console.log("Connection closed by the server");
+        };
+      });
+    </script>
+  </head>
+  <body class="has-bg-light">
+    <div class="container has-pt-16 has-pb-16">
+      <div class="has-pl-4 has-pr-4 has-ml-auto has-mr-auto">
+        <div id="clientsContainer" class="card is-shadowed">
+          <h4>Clients connected</h4>
+          <div id="client_list"></div>
+        </div>
+        <div class="card is-shadowed">
+          <textarea id="jsonInput" rows="10" cols="30"></textarea><br />
+          <button id="sendJSON">Send JSON</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
