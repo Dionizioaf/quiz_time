@@ -14,18 +14,13 @@ The app in version 1.0 is divided into 3 folders:
 
 ## ROADMAP
 
-Here we list some items that will be needed in this 1.0 version:
+Here we list some items that will be needed in app, that is not inserted in Github Issues:
 
-- Save the client's name and UID in local storage.
 - Save this information on the server to enable client reconnection.
 - Include a button on the host to load clients.
 - Allow the host to receive scores from clients to generate rankings.
-- Add an event ID field.
-- Create a flow for saving questions.
 - Create an event screen that displays the question and options during the flow.
 - Add space for background music.
-- Create a structure for event tokens.
-- Connect to Supabase/PostgreSQL/MongoDB.
 - Implement a reconnection feature for Clients and Host.
 
 ## Versões
