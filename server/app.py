@@ -1,26 +1,14 @@
 import asyncio
 import websockets
 import json
-import sqlite3
 import time
 
-
-def setup_database():
-    conn = sqlite3.connect('quiz_responses.db')
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS responses (
-            question TEXT,
-            client_name TEXT,
-            answer TEXT,
-            points INTEGER
-        )
-    ''')
-    conn.commit()
-    conn.close()
+from db_interface import database_setup, save_response
 
 
-setup_database()
+# Setup Database
+database_setup()
+
 
 connected_clients = {}
 question_start_times = {}  # Map of IDs to their starttimes in ms
@@ -72,16 +60,6 @@ async def broadcast(message):
              for client in connected_clients]
     if tasks:
         await asyncio.wait(tasks)
-
-
-def save_response(question, client_name, answer, points):
-    conn = sqlite3.connect('quiz_responses.db')
-    c = conn.cursor()
-    c.execute('''INSERT INTO responses (question, client_name, answer, points)
-                VALUES (?, ?, ?, ?)''',
-              (question, client_name, answer, points))
-    conn.commit()
-    conn.close()
 
 
 start_server = websockets.serve(handler, "localhost", 12345)
