@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import sqlite3
+# import uuid
 
 load_dotenv()
 
@@ -38,11 +39,67 @@ def sqllite_create_db():
     conn.close()
 
 
-def save_response(question, client_name, answer, points):
-    conn = sqlite3.connect(sql_db)
+def get_dbconn():
+    return sqlite3.connect(sql_db)
+
+
+def save_response(eventid, question, client_name, answer, points):
+    conn = get_dbconn()
     c = conn.cursor()
-    c.execute('''INSERT INTO responses (question, client_name, answer, points)
+    c.execute('''INSERT INTO responses
+                (eventid, question, client_name, answer, points)
                 VALUES (?, ?, ?, ?)''',
-              (question, client_name, answer, points))
+              (eventid, question, client_name, answer, points))
     conn.commit()
     conn.close()
+
+
+def get_events_table(byid="", byname=""):
+
+    with get_dbconn() as conn:
+        c = conn.cursor()
+
+        # Select by ID
+        if byid:
+            c.execute("SELECT * FROM events WHERE id = ?", (byid,))
+
+        # Select by Name
+        elif byname:
+            search_term = f"%{byname}%"
+            c.execute("SELECT * FROM events WHERE name LIKE ?", (search_term,))
+
+        # Select all if no parameters are provided
+        else:
+            c.execute("SELECT * FROM events")
+
+        # Fetch all results from the query
+        results = c.fetchall()
+
+    # Return the fetched results
+    return results
+
+
+def get_question_table(eventid):
+    # TODO Create the logic
+    return eventid
+
+
+def responses_table(event_id, question_id=""):
+    with get_dbconn() as conn:
+        c = conn.cursor()
+
+        if event_id:
+            if question_id:
+                c.execute('''
+                SELECT * FROM responses
+                WHERE eventid = ? and
+                question_id = ? ''', (event_id, question_id))
+            else:
+                c.execute('''SELECT * FROM responses
+                WHERE eventid = ?''', (event_id,))
+            result = c.fetchall()
+
+        else:
+            result = []
+
+    return result
