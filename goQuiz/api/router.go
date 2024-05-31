@@ -10,7 +10,7 @@ import (
 func Router() (*gin.Engine, error) {
 	// Set the router as the default one shipped with Gin
 	router := gin.Default()
-
+	router.Use(MiddlewareCors())
 	// Serve frontend static files
 	router.Use(static.Serve("/", static.LocalFile("./web/static", true)))
 
@@ -23,7 +23,8 @@ func Router() (*gin.Engine, error) {
 			})
 		})
 	}
-
+	Login(api)
+	Game(api)
 	jokes(api)
 
 	// Start and run the server
