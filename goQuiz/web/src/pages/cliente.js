@@ -32,6 +32,9 @@ const Cliente = () => {
   }, []);
 
   useEffect(() => {
+    if (responseMessage === undefined || responseMessage === "") {
+      return
+    }
     setToast(false);
     setToast(true);
   }, [responseMessage]);
